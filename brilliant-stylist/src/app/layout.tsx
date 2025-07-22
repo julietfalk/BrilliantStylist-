@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ReactNode } from 'react';
 import { SupabaseProvider } from '../lib/SupabaseProvider';
+import Link from 'next/link';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,6 +24,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
+        {/* Header Navigation */}
+        <header className="w-full bg-white shadow-sm border-b mb-4">
+          <nav className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+            <Link href="/" className="text-2xl font-bold text-purple-700 hover:text-purple-900 transition-colors">Brilliant Stylist</Link>
+            <div className="flex gap-4">
+              <Link href="/game" className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-5 py-2 rounded-full font-semibold hover:from-pink-600 hover:to-purple-700 transition-all">Start Game</Link>
+            </div>
+          </nav>
+        </header>
+        {/* Main Content */}
         <SupabaseProvider>
           {children}
         </SupabaseProvider>

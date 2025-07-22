@@ -11,6 +11,7 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'signup' | 'signin'>('signup');
 
   const handleSignUp = async () => {
     const { error } = await supabase.auth.signUp({ email, password });
@@ -18,8 +19,12 @@ export default function Home() {
   };
 
   const handleSignIn = async () => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     setMessage(error ? error.message : 'Signed in!');
+    if (!error) {
+      setShowAuth(false);
+      router.push('/profile');
+    }
   };
 
   const startGame = () => {
@@ -62,10 +67,16 @@ export default function Home() {
               </button>
               
               <button 
-                onClick={() => setShowAuth(true)}
+                onClick={() => { setShowAuth(true); setAuthMode('signup'); }}
                 className="bg-purple-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 Create Account
+              </button>
+              <button
+                onClick={() => { setShowAuth(true); setAuthMode('signin'); }}
+                className="bg-gray-700 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Sign In
               </button>
             </div>
             
@@ -104,7 +115,7 @@ export default function Home() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-8 max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Create Account</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{authMode === 'signup' ? 'Create Account' : 'Sign In'}</h2>
               <button 
                 onClick={() => setShowAuth(false)}
                 className="text-gray-400 hover:text-gray-600 text-2xl"
@@ -129,18 +140,21 @@ export default function Home() {
             />
             
             <div className="flex gap-3 mb-4">
-              <button 
-                onClick={handleSignUp}
-                className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
-              >
-                Sign Up
-              </button>
-              <button 
-                onClick={handleSignIn}
-                className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
-              >
-                Sign In
-              </button>
+              {authMode === 'signup' ? (
+                <button 
+                  onClick={handleSignUp}
+                  className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors"
+                >
+                  Sign Up
+                </button>
+              ) : (
+                <button 
+                  onClick={handleSignIn}
+                  className="flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
             </div>
             
             {message && (

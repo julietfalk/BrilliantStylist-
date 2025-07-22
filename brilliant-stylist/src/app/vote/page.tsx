@@ -80,12 +80,20 @@ export default function VotePage() {
     setUserVote(vote);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setUserVote(null);
+        setVoting(false);
+        return;
+      }
       // Store the vote in Supabase
       const { error } = await supabase
         .from('votes')
         .insert({
           vote_pair_id: currentPair.id,
           user_submission_id: currentPair.userSubmission.id,
+          voter_id: user.id,
           vote_type: vote,
           voted_at: new Date().toISOString()
         });

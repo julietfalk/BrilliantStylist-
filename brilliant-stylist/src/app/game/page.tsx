@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSupabase } from '../../lib/SupabaseProvider';
 import { useRouter } from 'next/navigation';
+import FashionPromptCard from '@/components/FashionPromptCard';
 
 interface FashionPrompt {
   id: string;
@@ -22,15 +23,24 @@ export default function GamePage() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [prompt, setPrompt] = useState<any>(null);
+  const [loadingPrompt, setLoadingPrompt] = useState(true);
 
-  // Hardcoded fashion prompt
-  const currentPrompt: FashionPrompt = {
-    id: '1',
-    title: 'Summer Beach Glam',
-    description: 'Create a stunning beach outfit that combines comfort with high fashion. Think flowing fabrics, sun protection, and Instagram-worthy style.',
-    category: 'Casual',
-    difficulty: 'Medium',
-    keywords: ['beach', 'summer', 'flowing', 'comfortable', 'stylish', 'sunglasses', 'hat']
+  useEffect(() => {
+    fetchRandomPrompt();
+  }, []);
+
+  const fetchRandomPrompt = async () => {
+    setLoadingPrompt(true);
+    const { data, error } = await supabase
+      .from('fashion_cards')
+      .select('*')
+      .order('RANDOM()')
+      .limit(1);
+    if (data && data.length > 0) {
+      setPrompt(data[0]);
+    }
+    setLoadingPrompt(false);
   };
 
   useEffect(() => {
@@ -131,10 +141,10 @@ export default function GamePage() {
         .from('user_outfits')
         .insert({
           user_id: user.id,
-          name: currentPrompt.title,
-          description: `Recreation of: ${currentPrompt.description}`,
+          name: prompt.title,
+          description: `Recreation of: ${prompt.style_description}`,
           outfit_data: {
-            prompt_id: currentPrompt.id,
+            prompt_id: prompt.id,
             image_url: data.path,
             public_url: urlData.publicUrl,
             uploaded_at: new Date().toISOString()
@@ -208,34 +218,20 @@ export default function GamePage() {
         </div>
 
         {/* Fashion Prompt Card */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-start justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">{currentPrompt.title}</h2>
-            <div className="flex gap-2">
-              <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                {currentPrompt.category}
-              </span>
-              <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
-                {currentPrompt.difficulty}
-              </span>
-            </div>
-          </div>
-          
-          <p className="text-gray-700 mb-4 text-lg">{currentPrompt.description}</p>
-          
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-900 mb-2">Keywords to avoid:</h3>
-            <div className="flex flex-wrap gap-2">
-              {currentPrompt.keywords.map((keyword, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm"
-                >
-                  {keyword}
-                </span>
-              ))}
-            </div>
-          </div>
+        <div className="flex justify-center mb-6 min-h-[420px]">
+          {loadingPrompt ? (
+            <div className="text-lg text-gray-500 flex items-center">Loading prompt...</div>
+          ) : prompt ? (
+            <FashionPromptCard
+              imageUrl={prompt.image_url}
+              designer={prompt.designer}
+              brand={prompt.brand}
+              styleDescription={prompt.style_description}
+              title={prompt.title}
+            />
+          ) : (
+            <div className="text-lg text-red-500 flex items-center">No prompt found.</div>
+          )}
         </div>
 
         {/* Upload Section */}
